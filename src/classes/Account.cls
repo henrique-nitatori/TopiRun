@@ -3,14 +3,11 @@
  **/
 
 public class Account {
-    AccountRepository accountRepository;
-   
-    public Account() {
-        this (new AccountRepository());
-    }
 
-    public Account(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+    AccountRepository accountRepository;
+
+    public Account() {
+        this.accountRepository = new AccountRepository();
     }   
 
 
@@ -28,40 +25,54 @@ public class Account {
         this.accountRepository.create(accounts);
     }
 
-    public void depositMoneyInAccount(String clientDocument, Decimal amount) {
-        if(String.isEmpty(clientDocument)) {return;}
+    public Boolean depositMoneyInAccount(String clientDocument, Decimal amount) {
+        if(String.isEmpty(clientDocument)) {return false;}
 
         List<Account__c> accounts = this.accountRepository.findByDocument(clientDocument);
 
-        if(accounts.isEmpty()) {return;}
+        if(accounts.isEmpty()) {return false;}
 
         List<Account__c> accountsUpdatedBalance = new List<Account__c>();
 
-        for(Account__c account : accounts) {
-            Account__c accountUpdatedBalance = account.clone(true, true, true, true);
-            accountUpdatedBalance.balance__c += amount;
-            accountsUpdatedBalance.add(accountUpdatedBalance);
-        }
+        
+        Account__c accountUpdatedBalance = accounts[0].clone(true, true, true, true);
+        accountUpdatedBalance.balance__c += amount;
+        accountsUpdatedBalance.add(accountUpdatedBalance);
+        
 
         this.accountRepository.store(accountsUpdatedBalance);
+
+        return true;
     }
 
-    public void withdrawMoneyOfAccount(String clientDocument, Decimal amount) {
-        if(String.isEmpty(clientDocument)) {return;}
+    public Boolean withdrawMoneyOfAccount(String clientDocument, Decimal amount) {
+        if(String.isEmpty(clientDocument)) {return false;}
 
         List<Account__c> accounts = this.accountRepository.findByDocument(clientDocument);
 
-        if(accounts.isEmpty()) {return;}
+        if(accounts.isEmpty()) {return false;}
 
         List<Account__c> accountsUpdatedBalance = new List<Account__c>();
 
-        for(Account__c account : accounts) {
-            if(account.balance__c < amount) {return;}
-            Account__c accountUpdatedBalance = account.clone(true, true, true, true);
-            accountUpdatedBalance.balance__c -= amount;
-            accountsUpdatedBalance.add(accountUpdatedBalance);
+        if(accounts[0].balance__c < amount) {
+            accounts[0].addError('balance__c', 'Saldo insuficiente');
         }
 
+        Account__c accountUpdatedBalance = accounts[0].clone(true, true, true, true);
+        accountUpdatedBalance.balance__c -= amount;
+        accountsUpdatedBalance.add(accountUpdatedBalance);
+        
+
         this.accountRepository.store(accountsUpdatedBalance);
+        return true;
+    }
+
+    public void transferMoneyOfAccount(String documentOfSender, String documentOfReceiver, Decimal amount) {
+        if( withdrawMoneyOfAccount(documentOfSender, amount) ) {
+
+           if( depositMoneyInAccount(documentOfReceiver, amount) ) {return;}
+
+           depositMoneyInAccount(documentOfSender, amount);
+        }
     }
 }
