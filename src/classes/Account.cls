@@ -23,4 +23,21 @@ public class Account {
 
         this.accountRepository.create(accounts);
     }
+
+    public void depositMoneyInAccount(String clientDocument, Decimal amount) {
+        if(String.isEmpty(clientDocument)) {return;}
+
+        List<Account__c> accounts = this.accountRepository.findByDocument(clientDocument);
+
+        if(accounts.isEmpty()) {return;}
+
+        List<Account__c> accountsUpdatedBalance = new List<Account__c>();
+
+        for(Account__c account : accounts) {
+            account.balance__c = amount;
+            accountsUpdatedBalance.add(account);
+        }
+
+        this.accountRepository.store(accountsUpdatedBalance);
+    }
 }
