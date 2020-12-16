@@ -34,8 +34,9 @@ public class Account {
         List<Account__c> accountsUpdatedBalance = new List<Account__c>();
 
         for(Account__c account : accounts) {
-            account.balance__c = amount;
-            accountsUpdatedBalance.add(account);
+            Account__c accountUpdatedBalance = account.clone(true, true, true, true);
+            accountUpdatedBalance.balance__c += amount;
+            accountsUpdatedBalance.add(accountUpdatedBalance);
         }
 
         this.accountRepository.store(accountsUpdatedBalance);
