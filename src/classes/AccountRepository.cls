@@ -25,4 +25,8 @@ public virtual class AccountRepository {
         update accounts;
         return accounts;   
     }
+    virtual
+    public void deleteAccount(List<Account__c> accounts) {
+        delete accounts;
+    }
 }

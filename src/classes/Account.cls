@@ -14,6 +14,10 @@ public class Account {
     public void createNewAccount(String clientFirstName, String clientLastName, String clientDocument) {
         if(String.isEmpty(clientFirstName) || String.isEmpty(clientLastName) || String.isEmpty(clientDocument)) {return;}
 
+        List<Account__c> accountsAlreadyExists = this.accountRepository.findByDocument(clientDocument);
+
+        if(!accountsAlreadyExists.isEmpty()) {return; }
+
         List<Account__c> accounts = new List<Account__c>{
             new Account__c(
             clientFirstName__c = clientFirstName,
@@ -23,6 +27,14 @@ public class Account {
         };
 
         this.accountRepository.create(accounts);
+    }
+
+    public void deleteAccount(String clientDocument) {
+        List<Account__c> accounts = this.accountRepository.findByDocument(clientDocument);
+
+        if(accounts.isEmpty()) {return;}
+
+        this.accountRepository.deleteAccount(accounts);
     }
 
     public Boolean depositMoneyInAccount(String clientDocument, Decimal amount) {
