@@ -5,13 +5,17 @@
 public class Account {
     AccountRepository accountRepository;
    
+    public Account() {
+        this (new AccountRepository());
+    }
+
     public Account(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }   
 
 
     public void createNewAccount(String clientFirstName, String clientLastName, String clientDocument) {
-        if(String.isBlank(clientFirstName) || String.isBlank(clientLastName) || String.isBlank(clientDocument)) {return;}
+        if(String.isEmpty(clientFirstName) || String.isEmpty(clientLastName) || String.isEmpty(clientDocument)) {return;}
 
         List<Account__c> accounts = new List<Account__c>{
             new Account__c(
@@ -36,6 +40,25 @@ public class Account {
         for(Account__c account : accounts) {
             Account__c accountUpdatedBalance = account.clone(true, true, true, true);
             accountUpdatedBalance.balance__c += amount;
+            accountsUpdatedBalance.add(accountUpdatedBalance);
+        }
+
+        this.accountRepository.store(accountsUpdatedBalance);
+    }
+
+    public void withdrawMoneyOfAccount(String clientDocument, Decimal amount) {
+        if(String.isEmpty(clientDocument)) {return;}
+
+        List<Account__c> accounts = this.accountRepository.findByDocument(clientDocument);
+
+        if(accounts.isEmpty()) {return;}
+
+        List<Account__c> accountsUpdatedBalance = new List<Account__c>();
+
+        for(Account__c account : accounts) {
+            if(account.balance__c < amount) {return;}
+            Account__c accountUpdatedBalance = account.clone(true, true, true, true);
+            accountUpdatedBalance.balance__c -= amount;
             accountsUpdatedBalance.add(accountUpdatedBalance);
         }
 
